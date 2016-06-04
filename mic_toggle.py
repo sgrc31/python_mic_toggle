@@ -27,8 +27,8 @@ import sys
 #        mic_attivo = True
 
 def kbevent(event):
-    notifica_disattivazione = 'notify-send -u normal -t 1 "microfono disattivato"'
-    notifica_attivazione = 'notify-send -u normal -t 1 "microfono attivato"'
+    notifica_disattivazione = 'notify-send -t 1000 "microfono disattivato"'
+    notifica_attivazione = 'notify-send -t 1000 "microfono attivato"'
     if event.Ascii == tasto_ascii:
         subprocess.call('amixer set Capture toggle', shell=True)
         check_mic_status = subprocess.check_output(verifica_stato, shell=True).strip().decode('ascii')
