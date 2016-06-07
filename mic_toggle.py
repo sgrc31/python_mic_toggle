@@ -6,41 +6,29 @@ import subprocess
 import sys
 
 
-
-
 #Define a function called at every keypress
-""" First try, discarded 'cause checking againt a variable doesn't
-    work if an external software changes mic status 
-"""
-#mic_attivo = True
-#def kbevent(event):
-#    global mic_attivo
-#    notifica_disattivazione = 'notify-send -u normal -t 1 "microfono disattivato"'
-#    notifica_attivazione = 'notify-send -u normal -t 1 "microfono attivato"'
-#    if  event.Ascii == tasto and mic_attivo:
-#        subprocess.call('amixer set Capture toggle', shell=True)
-#        subprocess.call(notifica_disattivazione, shell=True)
-#        mic_attivo = False
-#    elif event.Ascii == tasto and not mic_attivo:
-#        subprocess.call('amixer set Capture toggle', shell=True)
-#        subprocess.call(notifica_attivazione, shell=True)
-#        mic_attivo = True
-
 def kbevent_down(event):
     if event.Ascii == tasto_ascii:
-        subprocess.call('amixer set Capture cap', shell=True)
+        subprocess.call('amixer -q set Capture cap', shell=True)
+    elif event.Ascii == 113 and event.WindowName[-7:] == 'toggler':
+        global running
+        running = False
 
+        
 def kbevent_up(event):
     if event.Ascii == tasto_ascii:
-        subprocess.call('amixer set Capture nocap', shell=True)
+        subprocess.call('amixer -q set Capture nocap', shell=True)
 
 
 #Pre flight checks
-lista_output = ['amixer get Capture | grep "\[on\]" | head -1 | cut -d " " -f 7'
+lista_output = ['amixer get Capture | grep "\[on\]" | head -1 | cut -d " " -f 7',
                 'amixer get Capture | grep "\[on\]" | head -1 | cut -d " " -f 8',
-                'amixer get Capture | grep "\[on\]" | head -1 | cut -d " " -f 9',
-                'amixer get Capture | grep "\[on\]" | head -1 | cut -d " " -f 10']
+                'amixer get Capture | grep "\[on\]" | head -1 | cut -d " " -f 9']
 
+#To make sure the Capture interface is up
+subprocess.call('amixer -q set Capture cap', shell=True)
+
+#Select right amixer command
 avanzamento = 0
 for papabile in lista_output:
     output = subprocess.check_output(papabile, shell=True).strip().decode('ascii')
@@ -48,7 +36,7 @@ for papabile in lista_output:
     avanzamento += 1
 
 verifica_stato = ''
-subprocess.call('amixer set Capture cap', shell=True)
+
 while verifica_stato == '':
     output_selezionato = raw_input('Seleziona il numero di riga dove e\' comparso \"[on]\"\n')
     if output_selezionato == '0':
@@ -57,18 +45,17 @@ while verifica_stato == '':
         verifica_stato = lista_output[1]
     elif output_selezionato == '2':
         verifica_stato = lista_output[2]
-    elif output_selezionato == '3':
-        verifica_stato = lista_output[3]
     else:
         print('selezione non valida, riprova')
 
-#Trovo Ascii del tasto utilizzato per mutare il microfono
-tasto = raw_input('Ora seleziona il tasto per spegnere/accendere il microfono (NO ctrl, alt, shift, cose strane)\n')
+#Set the push-to-talk button
+tasto = raw_input('Ora seleziona il tasto per spegnere/accendere il microfono (NO Q, ctrl, alt, shift, cose strane)\n')
 tasto_ascii = ord(tasto)
 
-print('Settaggio completato, lo script e\' ora in funzione')
-subprocess.call('amixer set Capture nocap', shell=True)
-
+print('Settaggio completato, lo script e\' ora in funzione\n'
+      'Il microfono e\' disattivato, tenere premuto \"' + tasto.upper() + '\" per attivarlo\n'
+      'Per disattivare lo scrip premere \"Q\" in questa finestra. Fly safe!')
+subprocess.call('amixer -q set Capture nocap', shell=True)
 
 #Create hookmanager
 hookman = pyxhook.HookManager()
@@ -81,8 +68,13 @@ hookman.HookKeyboard()
 hookman.start()
     
 #Let's start this thing
-while True:
+running = True
+while running:
     time.sleep(0.1)
+
+#Put the Capture interface back up
+subprocess.call('amixer -q set Capture cap', shell=True)
+print('Grazie per aver utilizzato python_mic_toggle!')
 
 #Close the listener when we are done
 hookman.cancel()
