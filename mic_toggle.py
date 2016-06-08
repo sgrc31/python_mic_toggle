@@ -3,7 +3,6 @@
 import pyxhook
 import time
 import subprocess
-import sys
 
 
 #Define a function called at every keypress
