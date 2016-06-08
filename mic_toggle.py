@@ -21,10 +21,10 @@ def kbevent_up(event):
         subprocess.call(['amixer', '-q', 'set', 'Capture', 'nocap'])
 
 
-id_linea = subprocess.check_output(['xprop', '-root', '_NET_ACTIVE_WINDOW']).strip()
+id_linea = subprocess.check_output(['xprop', '-root', '\'\\t$0\'', '_NET_ACTIVE_WINDOW']).strip()
 id_parti = id_linea.split()
-id = id_parti[-1]
-nome_linea = subprocess.check_output(['xprop', '-id', id, 'WM_NAME']).strip()
+id_valore = id_parti[-1]
+nome_linea = subprocess.check_output(['xprop', '-id', id_valore, 'WM_NAME']).strip()
 nome_parti = nome_linea.split()
 nome_parti_utili = nome_parti[2:]
 nome_parti_utili_unite = ' '.join(nome_parti_utili)
